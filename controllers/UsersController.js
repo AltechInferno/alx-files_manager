@@ -64,3 +64,5 @@ class UsersController {
     return response.status(201).send(user);
   }
 }
+
+export default UsersController;
