@@ -1,45 +1,54 @@
-// db.js
-
 import { MongoClient } from 'mongodb';
 
+/**
+ * performing operations with Mongo service
+ */
 class DBClient {
   constructor() {
-    const {
-      DB_HOST = 'localhost',
-      DB_PORT = 27017,
-      DB_DATABASE = 'files_manager',
-    } = process.env;
+	const DB_HOST = process.env.DB_HOST || 'localhost';
+	const DB_PORT = process.env.DB_PORT || 27017;
+	const DB_DATABASE = process.env.DB_DATABASE || 'files_manager';
+	const url = `mongodb://${DB_HOST}:${DB_PORT}`;
 
-    this.client = new MongoClient(`mongodb://${DB_HOST}:${DB_PORT}`, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-
-    this.client.connect((err) => {
-      if (err) {
-        console.log(`Connection to MongoDB failed: ${err}`);
+    MongoClient.connect(url, { useUnifiedTopology: true }, (err, client) => {
+      if (!err) {
+        this.db = client.db(DB_DATABASE);
+        this.usersCollection = this.db.collection('users');
+        this.filesCollection = this.db.collection('files');
       } else {
-        console.log('Connection to MongoDB established');
+        console.log(err.message);
+        this.db = false;
       }
     });
   }
 
+  /**
+   * Checks connection to Redis is Alive
+   * @return {boolean} true if connection alive or false if not
+   */
   isAlive() {
-    return this.client.isConnected();
+    return Boolean(this.db);
   }
 
+  /**
+   * Returns number of documents in user collection
+   * @return {number} amount of users
+   */
   async nbUsers() {
-    const usersCollection = this.client.db().collection('users');
-    return usersCollection.countDocuments();
+    const numOfUsers = this.usersCollection.countDocuments();
+    return numOfUsers;
   }
 
+  /**
+   * Returns number of documents in the collection files
+   * @return {number} amount of files
+   */
   async nbFiles() {
-    const filesCollection = this.client.db().collection('files');
-    return filesCollection.countDocuments();
+    const numOfFiles = this.filesCollection.countDocuments();
+    return numOfFiles;
   }
 }
 
 const dbClient = new DBClient();
 
 export default dbClient;
-
