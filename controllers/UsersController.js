@@ -24,27 +24,27 @@ class UsersController {
 
     return response.status(200).send(processedUser);
   }
-}
 
 //create a user
 
   static async postNew(request, response) {
     const info = request.body;
+    const {email, password} = request.body;
 
     if (!info.email) return response.status(400).send({ error: 'Missing email' });
 
     if (!info.password) { return response.status(400).send({ error: 'Missing password' }); }
 
-    const emailExists = await dbClient.usersCollection.findOne({ info.email });
+    const emailExists = await dbClient.usersCollection.findOne({ email });
 
     if (emailExists) { return response.status(400).send({ error: 'Already exist' }); }
 
-    const sha1Password = sha1(info.password);
+    const sha1Password = sha1(password);
 
     let result;
     try {
       result = await dbClient.usersCollection.insertOne({
-        info.email,
+        email,
         password: sha1Password,
       });
     } catch (err) {
